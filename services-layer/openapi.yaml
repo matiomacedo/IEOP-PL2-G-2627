@@ -162,7 +162,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Erro"
         "404":
-          description: Produto não encontrado
+          description: Produto não encontrado no Moloni ON
           content:
             application/json:
               schema:
