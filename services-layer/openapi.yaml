@@ -5,7 +5,7 @@ info:
   version: 1.0.0
   description: >
     API REST desenvolvida em Node.js e Express para permitir
-    a comunicação entre a aplicação Mendix e o Moloni ON.
+    a comunicação entre a aplicação Mendix, o n8n e o Moloni ON.
 
 servers:
   - url: http://localhost:3000
@@ -14,6 +14,7 @@ servers:
 paths:
   /api/health:
     get:
+      security: []
       summary: Verificar o estado da Services Layer
       operationId: verificarEstado
       responses:
@@ -55,21 +56,117 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/Produto"
-
         "401":
           description: API Key interna não fornecida
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Erro"
-
         "403":
           description: API Key interna inválida
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Erro"
+        "502":
+          description: Erro na comunicação ou resposta do Moloni ON
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
 
+  /api/produtos/stock:
+    get:
+      security:
+        - ApiKeyInterna: []
+      summary: Consultar stock dos produtos
+      description: >
+        Devolve os produtos do Moloni ON que têm controlo
+        de stock ativo, para utilização no n8n.
+      operationId: consultarStockProdutos
+      responses:
+        "200":
+          description: Stock dos produtos obtido com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    example: 3
+                  produtos:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/StockProduto"
+        "401":
+          description: API Key interna não fornecida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "403":
+          description: API Key interna inválida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "502":
+          description: Erro na comunicação ou resposta do Moloni ON
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+
+  /api/produtos/{id}/stock:
+    get:
+      security:
+        - ApiKeyInterna: []
+      summary: Consultar stock de um produto
+      description: >
+        Obtém o stock atual, o stock mínimo e os dados de stock
+        por armazém de um produto do Moloni ON.
+      operationId: consultarStockProduto
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identificador numérico positivo do produto.
+          schema:
+            type: integer
+            minimum: 1
+          example: 363517
+      responses:
+        "200":
+          description: Stock do produto obtido com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetalheStockProduto"
+        "400":
+          description: Identificador do produto inválido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "401":
+          description: API Key interna não fornecida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "403":
+          description: API Key interna inválida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "404":
+          description: Produto não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
         "502":
           description: Erro na comunicação ou resposta do Moloni ON
           content:
@@ -107,34 +204,31 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/Cliente"
-
         "400":
           description: Parâmetro nif não fornecido ou vazio
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Erro"
-
         "401":
           description: API Key interna não fornecida
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Erro"
-
         "403":
           description: API Key interna inválida
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Erro"
-
         "502":
           description: Erro na comunicação ou resposta do Moloni ON
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Erro"
+
 components:
   securitySchemes:
     ApiKeyInterna:
@@ -144,6 +238,61 @@ components:
       description: Chave interna utilizada pelo Mendix e pelo n8n.
 
   schemas:
+    StockProduto:
+      type: object
+      properties:
+        productId:
+          type: integer
+          example: 363517
+        name:
+          type: string
+          example: Filtro de ar
+        reference:
+          type: string
+          example: dr
+        stockAtual:
+          type: number
+          example: 10
+        stockMinimo:
+          type: number
+          example: 0
+
+    DetalheStockProduto:
+      type: object
+      properties:
+        productId:
+          type: integer
+          example: 363517
+        name:
+          type: string
+          example: Filtro de ar
+        hasStock:
+          type: boolean
+          example: true
+        stockAtual:
+          type: number
+          example: 10
+        stockMinimo:
+          type: number
+          example: 0
+        armazens:
+          type: array
+          items:
+            $ref: "#/components/schemas/StockArmazem"
+
+    StockArmazem:
+      type: object
+      properties:
+        warehouseId:
+          type: integer
+          example: 507
+        stockAtual:
+          type: number
+          example: 10
+        stockMinimo:
+          type: number
+          example: 0
+
     Cliente:
       type: object
       properties:

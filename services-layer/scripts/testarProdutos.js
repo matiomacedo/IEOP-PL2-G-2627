@@ -24,6 +24,9 @@ async function testarProdutos() {
                 productId
                 name
                 reference
+                hasStock
+                stock
+                minStock
               }
             }
           }
