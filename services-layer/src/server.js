@@ -1,12 +1,14 @@
+require("dotenv").config();
+
 const express = require("express");
+const produtosRoutes = require("./routes/produtos.routes");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Permite receber pedidos com corpo JSON
 app.use(express.json());
 
-// Endpoint para verificar o funcionamento do servidor
+// Verificar se a Services Layer está operacional
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     status: "ok",
@@ -14,7 +16,10 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Iniciar o servidor
+// Rotas de produtos
+app.use("/api/produtos", produtosRoutes);
+
+// Iniciar servidor
 app.listen(PORT, () => {
   console.log(`Services Layer a funcionar na porta ${PORT}`);
 });

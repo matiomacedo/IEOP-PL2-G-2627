@@ -1,0 +1,84 @@
+openapi: 3.0.3
+
+info:
+  title: API de Integração — Gestão de Assistência Técnica
+  version: 1.0.0
+  description: >
+    API REST desenvolvida em Node.js e Express para permitir
+    a comunicação entre a aplicação Mendix e o Moloni ON.
+
+servers:
+  - url: http://localhost:3000
+    description: Servidor local de desenvolvimento
+
+paths:
+  /api/health:
+    get:
+      summary: Verificar o estado da Services Layer
+      operationId: verificarEstado
+      responses:
+        "200":
+          description: Servidor operacional
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  service:
+                    type: string
+                    example: gestao-assistencia-integracao
+
+  /api/produtos:
+    get:
+      summary: Consultar produtos do Moloni ON
+      description: >
+        Obtém os produtos registados no Moloni ON através
+        da camada de integração.
+      operationId: consultarProdutos
+      responses:
+        "200":
+          description: Lista de produtos obtida com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    example: 5
+                  produtos:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Produto"
+
+        "502":
+          description: Erro na comunicação ou resposta do Moloni ON
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+
+components:
+  schemas:
+    Produto:
+      type: object
+      properties:
+        productId:
+          type: integer
+          example: 363517
+        name:
+          type: string
+          example: Filtro de ar
+        reference:
+          type: string
+          example: dr
+
+    Erro:
+      type: object
+      properties:
+        erro:
+          type: string
+          example: Não foi possível consultar os produtos.
