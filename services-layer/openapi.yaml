@@ -77,6 +77,64 @@ paths:
               schema:
                 $ref: "#/components/schemas/Erro"
 
+  /api/clientes:
+    get:
+      security:
+        - ApiKeyInterna: []
+      summary: Consultar clientes por NIF
+      description: Pesquisa clientes no Moloni ON através do NIF.
+      operationId: consultarClientes
+      parameters:
+        - name: nif
+          in: query
+          required: true
+          description: NIF do cliente a pesquisar.
+          schema:
+            type: string
+          example: seuNIF_testes_API
+      responses:
+        "200":
+          description: Consulta efetuada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    example: 1
+                  clientes:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Cliente"
+
+        "400":
+          description: Parâmetro nif não fornecido ou vazio
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+
+        "401":
+          description: API Key interna não fornecida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+
+        "403":
+          description: API Key interna inválida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+
+        "502":
+          description: Erro na comunicação ou resposta do Moloni ON
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
 components:
   securitySchemes:
     ApiKeyInterna:
@@ -86,6 +144,23 @@ components:
       description: Chave interna utilizada pelo Mendix e pelo n8n.
 
   schemas:
+    Cliente:
+      type: object
+      properties:
+        customerId:
+          type: integer
+          example: 420930
+        name:
+          type: string
+          example: Cliente de Teste
+        vat:
+          type: string
+          nullable: true
+          example: "123456789"
+        number:
+          type: string
+          example: "2"
+
     Produto:
       type: object
       properties:
