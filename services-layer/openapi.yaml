@@ -33,6 +33,8 @@ paths:
 
   /api/produtos:
     get:
+      security:
+        - ApiKeyInterna: []
       summary: Consultar produtos do Moloni ON
       description: >
         Obtém os produtos registados no Moloni ON através
@@ -54,6 +56,20 @@ paths:
                     items:
                       $ref: "#/components/schemas/Produto"
 
+        "401":
+          description: API Key interna não fornecida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+
+        "403":
+          description: API Key interna inválida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+
         "502":
           description: Erro na comunicação ou resposta do Moloni ON
           content:
@@ -62,6 +78,13 @@ paths:
                 $ref: "#/components/schemas/Erro"
 
 components:
+  securitySchemes:
+    ApiKeyInterna:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Chave interna utilizada pelo Mendix e pelo n8n.
+
   schemas:
     Produto:
       type: object

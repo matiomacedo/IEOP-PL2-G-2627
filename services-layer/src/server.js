@@ -2,6 +2,7 @@ require("dotenv").config();
 
 const express = require("express");
 const produtosRoutes = require("./routes/produtos.routes");
+const autenticar = require("./middleware/autenticacao");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,7 +18,7 @@ app.get("/api/health", (req, res) => {
 });
 
 // Rotas de produtos
-app.use("/api/produtos", produtosRoutes);
+app.use("/api/produtos", autenticar, produtosRoutes);
 
 // Iniciar servidor
 app.listen(PORT, () => {
