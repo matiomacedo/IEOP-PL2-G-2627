@@ -1,0 +1,231 @@
+{
+  "name": "Alerta de stock baixo",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "0f66f7e1-25c6-422d-a328-22ec9ff6eb8b",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "3b68dd23-b099-4bf2-b4bb-0d15e1239625",
+              "leftValue": "={{ $json.stockAtual }}",
+              "rightValue": "={{ $json.stockMinimo }}",
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        672,
+        0
+      ],
+      "id": "4dbc0f12-3318-4689-94d0-f85c2d5e1114",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3000/api/produtos/stock",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "9d28db98-1651-483b-a452-79b7717e5136",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "TpMUAxdEuzKt7drZ",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "produtos",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        0
+      ],
+      "id": "acb3a48f-b112-4390-86d6-25d5a8101a60",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "jsCode": "const linhas = $input.all().map(i =>\n  `- ${i.json.name}: ${i.json.stockAtual} em stock (mínimo ${i.json.stockMinimo})`\n);\n\nreturn [{\n  json: {\n    assunto: `Alerta de stock baixo: ${linhas.length} peça(s)`,\n    corpo: \"As seguintes peças estão abaixo do stock mínimo:\\n\\n\" + linhas.join(\"\\n\"),\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        -96
+      ],
+      "id": "cda3ec31-1401-4223-ab5e-1e256778af5c",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "fromEmail": "chefep77@gmail.com",
+        "toEmail": "chefep77@gmail.com",
+        "subject": "={{ $json.assunto }}",
+        "emailFormat": "text",
+        "text": "={{ $json.corpo }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1120,
+        -96
+      ],
+      "id": "c4c6a5ce-a37e-40a1-b494-cb267f10c323",
+      "name": "Send an Email",
+      "webhookId": "479ab6f4-428a-4c46-9390-0a24dc0f98c5",
+      "credentials": {
+        "smtp": {
+          "id": "pW9Tkam50KSkCuqr",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        208
+      ],
+      "id": "a7568a8e-bb1a-4377-aee0-b37f39cf38e1",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send an Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "timezone": "Europe/Lisbon",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": -1,
+    "availableInMCP": false
+  },
+  "versionId": "b8d8540f-b6c7-4729-a744-b04f5c2c2988",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d417353842bf2a55e298ff681be008ac477cf37934b24e31d94cd08ebe397ba1"
+  },
+  "nodeGroups": [],
+  "id": "siq7TIRggv38M2An",
+  "tags": []
+}
