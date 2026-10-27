@@ -5,8 +5,6 @@
 **Ferramenta:** n8n (self-hosted) + Camada de Serviços REST + Moloni ON
 **Versão:** 27 de outubro de 2026
 
-> **Nota para o Mátio (apagar antes de integrar no template).** Texto para a parte de RPA, com as etapas numeradas como na secção 2.2 do Gonçalo R. As figuras estão em `RPA/prints/` no repositório. O ponto 6 tem o texto para o ponto 4 da secção 2.2 e a descrição do componente para o diagrama da secção 2.1.
-
 ---
 
 ## 1. Tarefa automatizada
@@ -15,11 +13,11 @@ Das três opções propostas na distribuição de tarefas (acompanhamento de pag
 
 Um workflow executado automaticamente uma vez por dia consulta o stock atual e o stock mínimo de cada peça no Moloni ON. As peças abaixo do mínimo são reunidas num único alerta, enviado por e-mail ao gestor, que pode assim encomendar ao fornecedor antes de o stock esgotar.
 
-**Enquadramento no processo.** A automatização liga-se à **Etapa 5** (execução da intervenção e consulta de stock) e ao percurso de exceção **«Encomendar ao Fornecedor → Aguardar encomenda»** descrito na secção 2.2. Esse percurso ocorre quando o técnico precisa de uma peça que não existe em armazém, o que atrasa a reparação ou a montagem. O alerta antecipa a encomenda e reduz o número de vezes em que o processo segue esse percurso.
+**Enquadramento no processo.** A automatização liga-se à **Etapa 5** (Execução da Intervenção e Consulta de Stock) e ao percurso de exceção **«Encomendar ao Fornecedor → Aguardar encomenda»** descrito na secção 2.2. Esse percurso ocorre quando o técnico precisa de uma peça que não existe em armazém, o que atrasa a reparação ou a montagem. O alerta antecipa a encomenda e reduz o número de vezes em que o processo segue esse percurso.
 
 **Porque não as outras opções.**
 - *Acompanhamento de pagamentos:* à data da análise, ainda não estava confirmado como saber pela API do Moloni ON se uma fatura está paga (a aplicação mostra a percentagem paga, mas o campo equivalente na API está por confirmar).
-- *Envio da fatura em PDF por e-mail:* esta função já está atribuída à aplicação Mendix, através do módulo Email Connector (Etapa 7), pelo que haveria sobreposição.
+- *Envio da fatura em PDF por e-mail:* esta função já está atribuída à aplicação Mendix, através do módulo Email Connector (Etapa 7, Emissão e Envio da Fatura), pelo que haveria sobreposição.
 
 ## 2. Porque vale a pena automatizar
 
@@ -55,7 +53,7 @@ A lista do professor inclui duas famílias de ferramentas:
 
 ## 4. Descrição do workflow
 
-Fluxo do workflow «Alerta de stock baixo»:
+Fluxo do workflow «Alerta de stock baixo» (Figura 13; esquema simplificado abaixo):
 
 ```
 Schedule Trigger (todos os dias às 9h)
@@ -122,7 +120,7 @@ return [{
 O workflow **não chama o Moloni ON diretamente**: passa pela camada de serviços do Guilherme, tal como a aplicação Mendix.
 
 ```
-n8n ──REST/JSON (HTTPS, X-API-Key)──► Camada de Serviços ──GraphQL (Bearer API Key)──► Moloni ON
+n8n ──REST/JSON (HTTP, X-API-Key)──► Camada de Serviços ──GraphQL (Bearer API Key)──► Moloni ON
                                          GET /api/produtos/stock           query products { stock minStock }
 n8n ──SMTP──► E-mail do gestor
 ```
@@ -145,10 +143,10 @@ Tecnologia: n8n (Node.js), self-hosted. Execução agendada (diária).
 
 > **4. Integração do Agente RPA (Mario)**
 >
-> Na Etapa 5 (`Verificar stock`), para evitar que uma intervenção pare por falta de componentes e tenha de seguir o percurso de exceção `Encomendar ao Fornecedor` → `Aguardar encomenda`:
-> * Um workflow n8n é executado diariamente de forma automática (Schedule Trigger).
+> Na Etapa 5 (Execução da Intervenção e Consulta de Stock), para evitar que uma intervenção pare por falta de componentes e tenha de seguir o percurso de exceção `Encomendar ao Fornecedor` → `Aguardar encomenda`:
+> * Um workflow n8n é executado automaticamente todos os dias às 9h (Schedule Trigger).
 > * O workflow consulta, através da camada de serviços, o stock atual e o stock mínimo de cada peça registada no Moloni ON.
-> * As peças com stock abaixo do mínimo são agrupadas num único alerta enviado por e-mail ao gestor, que pode encomendar ao fornecedor antes de o stock esgotar.
+> * As peças com stock abaixo do mínimo são agrupadas num único alerta enviado por e-mail ao Gestor, que pode encomendar ao fornecedor antes de o stock esgotar.
 > * O workflow apenas lê dados do ERP: não emite documentos nem altera o stock.
 
 ## 7. Exploração realizada e testes
@@ -173,12 +171,13 @@ Tecnologia: n8n (Node.js), self-hosted. Execução agendada (diária).
 | 10 | `10-email-alerta-recebido.png` | E-mail de alerta recebido |
 | 11 | `11-n8n-workflow-final.png` | Workflow final com os dois gatilhos (manual e agendado) |
 | 12 | `12-n8n-execucao-agendada.png` | Execução lançada pelo agendamento, no histórico de execuções |
+| 13 | `13-diagrama-workflow-alerta-stock.png` | Diagrama do workflow e ligações aos sistemas externos (fonte editável em `RPA/diagrama-workflow-alerta-stock.svg`) |
 
 Nenhuma figura mostra chaves de API.
 
 ## 8. Limitações e trabalho futuro
 
-- **O stock só desce quando a fatura é finalizada.** Nos testes do Gonçalo C., uma fatura em rascunho não alterou o stock. Por isso, nos testes, o alerta foi provocado definindo um stock mínimo acima do stock atual, e não consumindo peças.
+- **Redução do stock por confirmar.** Nos testes do Gonçalo C., uma fatura em rascunho não alterou o stock; falta confirmar se a fatura finalizada o reduz. Por isso, nos testes, o alerta foi provocado definindo um stock mínimo acima do stock atual, e não consumindo peças. Quando o comportamento estiver confirmado, a demonstração será repetida com stock consumido por uma fatura.
 - **Depende do stock mínimo estar configurado** em cada peça no Moloni ON. Uma peça com mínimo 0 nunca gera alerta.
 - **Execução local.** O n8n e a camada de serviços correm, por agora, em computadores locais. O agendamento só dispara se, às 9h, o n8n estiver a correr e o workflow estiver ativo (publicado). Para funcionar todos os dias sem depender de um computador ligado, ambos têm de ser alojados num servidor acessível, o que também é necessário para a aplicação Mendix.
 - **Dependência da camada de serviços.** Se a camada de serviços estiver em baixo, o pedido falha e o alerta desse dia não é enviado. Uma melhoria é usar um workflow de erro do n8n (Error Trigger) para avisar quando a verificação falha.
@@ -207,7 +206,7 @@ Totais por semana: **Semana 1:** 10h00 (3h00 + 7h00 da certificação) · **Sema
 ## 10. Referências
 
 [1] n8n. *n8n Docs*. https://docs.n8n.io/ (acedido a 26/10/2026)
-[2] n8n. *Sustainable Use License*. https://docs.n8n.io/sustainable-use-license/ (acedido a 26/10/2026)
+[2] n8n. *Sustainable Use License*. https://docs.n8n.io/n8n-community-license/sustainable-use-license (acedido a 26/10/2026)
 [3] n8n. *HTTP Request node, Split Out node, If node, Code node, Schedule Trigger node, Send Email node* (documentação dos nós). https://docs.n8n.io/integrations/builtin/ (acedido a 26/10/2026)
 [4] Make. *Pricing*. https://www.make.com/en/pricing (acedido a 26/10/2026)
 [5] Zapier. *Pricing*. https://zapier.com/pricing (acedido a 26/10/2026)
