@@ -1,5 +1,6 @@
 const express = require("express");
 const { executarGraphQL } = require("../services/moloni.service");
+const { responderErro } = require("../utils/respostaErro");
 
 const router = express.Router();
 
@@ -47,11 +48,7 @@ router.get("/", async (req, res) => {
       produtos,
     });
   } catch (erro) {
-    console.error("Erro na consulta de produtos:", erro.message);
-
-    return res.status(502).json({
-      erro: "Não foi possível consultar os produtos.",
-    });
+    return responderErro(res, erro, "Não foi possível consultar os produtos.");
   }
 });
 
@@ -123,11 +120,11 @@ router.get("/:id/stock", async (req, res) => {
       })),
     });
   } catch (erro) {
-    console.error("Erro na consulta de stock:", erro.message);
-
-    return res.status(502).json({
-      erro: "Não foi possível consultar o stock do produto.",
-    });
+    return responderErro(
+      res,
+      erro,
+      "Não foi possível consultar o stock do produto.",
+    );
   }
 });
 
@@ -186,11 +183,11 @@ router.get("/stock", async (req, res) => {
       produtos,
     });
   } catch (erro) {
-    console.error("Erro na consulta de stock:", erro.message);
-
-    return res.status(502).json({
-      erro: "Não foi possível consultar o stock dos produtos.",
-    });
+    return responderErro(
+      res,
+      erro,
+      "Não foi possível consultar o stock dos produtos.",
+    );
   }
 });
 

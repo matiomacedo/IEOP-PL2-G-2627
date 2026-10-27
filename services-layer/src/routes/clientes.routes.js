@@ -1,5 +1,6 @@
 const express = require("express");
 const { executarGraphQL } = require("../services/moloni.service");
+const { responderErro } = require("../utils/respostaErro");
 
 const router = express.Router();
 
@@ -65,11 +66,7 @@ router.get("/", async (req, res) => {
       clientes,
     });
   } catch (erro) {
-    console.error("Erro na consulta de clientes:", erro.message);
-
-    return res.status(502).json({
-      erro: "Não foi possível consultar os clientes.",
-    });
+    return responderErro(res, erro, "Não foi possível consultar os clientes.");
   }
 });
 
