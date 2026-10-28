@@ -23,6 +23,6 @@ app.use("/api/produtos", autenticar, produtosRoutes);
 app.use("/api/clientes", autenticar, clientesRoutes);
 
 // Iniciar servidor
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Services Layer a funcionar na porta ${PORT}`);
 });
