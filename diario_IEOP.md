@@ -14,7 +14,7 @@
 
 **Exemplo:**
 
-| Tarefa | M | Gonçalo Costa | Gonçalo Rodrigues | Guilherme Barros | Analista RPA |
+| Tarefa | M | Gonçalo Costa | Gonçalo Rodrigues | Guilherme Barros | Mário Ferreira |
 |---|---|---|---|---|---|
 | Ex.: análise de ferramenta Bizagi | | | 2h | | |
 
@@ -22,7 +22,7 @@
 
 ## Semana 1 (12 a 18 de outubro)
 
-| Tarefa | M | Gonçalo Costa | Gonçalo Rodrigues | Guilherme Barros | Analista RPA |
+| Tarefa | M | Gonçalo Costa | Gonçalo Rodrigues | Guilherme Barros | Mário Ferreira |
 |---|---|---|---|---|---|
 | Reunião de equipa (escolha do tema) | | | | | |
 | Criação da conta de developer do Jasmin e de uma app no Primavera Identity | | 1h | | | |
@@ -34,31 +34,36 @@
 
 ## Semana 2 (19 a 25 de outubro)
 
-| Tarefa | M | Gonçalo Costa | Gonçalo Rodrigues | Guilherme Barros | Analista RPA |
+| Tarefa | M | Gonçalo Costa | Gonçalo Rodrigues | Guilherme Barros | Mário Ferreira |
 |---|---|---|---|---|---|
 | Análise da API do Moloni ON (estrutura, autenticação, operações) e escolha das operações para o processo | | 2h | | | |
 | Criação da conta Moloni ON e da empresa de teste; ticket ao apoio da Moloni | | 1h | | | |
 | Configuração da empresa de teste: chave de API, séries de documentos, armazém, categorias, produtos e cliente | | 1h30 | | | |
 | Testes iniciais no Explorer (query me, IDs) e teste de stock com fatura em rascunho | | 1h | | | |
 | Redação da secção 3.1 e tabelas de dados ERP para Gonçalo R. e Guilherme | | 1h30 | | | |
+| Análise da distribuição de tarefas e da secção 3 (Moloni ON); escolha da tarefa a automatizar (alerta de stock baixo) | | | | | 1h |
+| Instalação e exploração do n8n; workflow de teste com dados fictícios (gatilho, Code, If) | | | | | 2h |
+| Comparação das ferramentas de automação (n8n, Make, Zapier, UiPath, UI.Vision) e justificação da escolha do n8n | | | | | 0h45 |
 | | | | | | |
-| **Total da semana** | | **7h** | | | |
+| **Total da semana** | | **7h** | | | **3h45** |
 
 ## Semana 3 (26 de outubro a 1 de novembro)
 
-| Tarefa | M | Gonçalo Costa | Gonçalo Rodrigues | Guilherme Barros | Analista RPA |
+| Tarefa | M | Gonçalo Costa | Gonçalo Rodrigues | Guilherme Barros | Mário Ferreira |
 |---|---|---|---|---|---|
 | Testes da API no Explorer: ativação do módulo, impostos, invoiceUpdate com IVA 23%, PDF | | 1h30 | | | |
 | Correção dos impostos (IVA português) e associação aos produtos | | 0h30 | | | |
 | Atualização da secção 3.1 (figuras, dificuldades, versão .md) e referências da secção 3 | | 1h | | | |
 | Guia de ligação do Mendix ao Moloni ON (apoio a Gonçalo R.) | | 1h | | | |
+| Integração do n8n com a camada de serviços (endpoint de stock) e testes com dados reais do Moloni ON | | | | | 1h45 |
+| Documentação RPA; envio de e-mail (SMTP) e agendamento diário do workflow n8n: testes e exportação | | | | | 1h15 |
+| Diagrama do workflow, revisão da documentação RPA e alinhamento com as secções 2.1, 2.2, 4.1 e 8.1 | | | | | 1h05 |
 | | | | | | |
-| | | | | | |
-| **Total da semana** | | **4h** | | | |
+| **Total da semana** | | **4h** | | | **4h05** |
 
 ## Semana 4 (2 a 8 de novembro)
 
-| Tarefa | M | Gonçalo Costa | Gonçalo Rodrigues | Guilherme Barros | Analista RPA |
+| Tarefa | M | Gonçalo Costa | Gonçalo Rodrigues | Guilherme Barros | Mário Ferreira |
 |---|---|---|---|---|---|
 | Ensaio da defesa / entrega intermédia (3 nov) | | | | | |
 | | | | | | |
@@ -77,7 +82,7 @@ Copiar o bloco abaixo para o fim do ficheiro e alterar o número e as datas.
 ```markdown
 ## Semana N (dd a dd de mês)
 
-| Tarefa | M | Gonçalo Costa | Gonçalo Rodrigues | Guilherme Barros | Analista RPA |
+| Tarefa | M | Gonçalo Costa | Gonçalo Rodrigues | Guilherme Barros | Mário Ferreira |
 |---|---|---|---|---|---|
 | | | | | | |
 | | | | | | |
@@ -93,7 +98,7 @@ Copiar o bloco abaixo para o fim do ficheiro e alterar o número e as datas.
 
 Atualizado pelo M no fim de cada semana. Será usado no relatório final, que deve incluir a contabilização do esforço despendido.
 
-| Semana | M | Gonçalo Costa | Gonçalo Rodrigues | Guilherme Barros | Analista RPA |
+| Semana | M | Gonçalo Costa | Gonçalo Rodrigues | Guilherme Barros | Mário Ferreira |
 |---|---|---|---|---|---|
 | 1 | | 4h | | | |
 | 2 | | 7h | | | |
