@@ -1,3 +1,4 @@
+
 # Diário do Projeto
 
 **UC:** Integração da Empresa · **Projeto final 2026/2027**
@@ -44,8 +45,12 @@
 | Análise da distribuição de tarefas e da secção 3 (Moloni ON); escolha da tarefa a automatizar (alerta de stock baixo) | | | | | 1h |
 | Instalação e exploração do n8n; workflow de teste com dados fictícios (gatilho, Code, If) | | | | | 2h |
 | Comparação das ferramentas de automação (n8n, Make, Zapier, UiPath, UI.Vision) e justificação da escolha do n8n | | | | | 0h45 |
-| | | | | | |
-| **Total da semana** | | **7h** | | | **3h45** |
+| Análise dos requisitos de integração e definição da arquitetura da Services Layer (Node.js, Express e Moloni ON) | | | | 0h45 | |
+| Configuração inicial da Services Layer, variáveis de ambiente e autenticação por API Key | | | | 0h45 | |
+| Implementação e testes dos endpoints REST de consulta de produtos e clientes | | | | 1h30 | |
+| Implementação dos endpoints de stock e integração com as operações GraphQL do Moloni ON | | | | 1h15 | |
+| Elaboração e validação da especificação OpenAPI dos serviços REST | | | | 0h45 | |
+| **Total da semana** | | **7h** | | **5h** | **3h45** |
 
 ## Semana 3 (26 de outubro a 1 de novembro)
 
@@ -58,8 +63,14 @@
 | Integração do n8n com a camada de serviços (endpoint de stock) e testes com dados reais do Moloni ON | | | | | 1h45 |
 | Documentação RPA; envio de e-mail (SMTP) e agendamento diário do workflow n8n: testes e exportação | | | | | 1h15 |
 | Diagrama do workflow, revisão da documentação RPA e alinhamento com as secções 2.1, 2.2, 4.1 e 8.1 | | | | | 1h05 |
-| | | | | | |
-| **Total da semana** | | **4h** | | | **4h05** |
+| Testes de integração com o Moloni ON e prova de conceito de criação e consulta de fatura em rascunho | | | | 1h | |
+| Implementação e validação do tratamento de erros GraphQL e HTTP na Services Layer | | | | 1h | |
+| Elaboração das secções 2.1, 4.1, 4.2 e 8.1 do relatório intermédio | | | | 2h | |
+| Criação do diagrama de arquitetura, organização das capturas de ecrã e publicação da documentação no GitHub | | | | 1h | |
+| Atualização do README e da documentação técnica da Services Layer | | | | 0h30 | |
+| Preparação do servidor Express e publicação da Services Layer no Render | | | | 1h | |
+| Testes dos cinco endpoints REST, autenticação e comunicação com o Moloni ON através do Render | | | | 0h45 | |
+| **Total da semana** | | **4h** | | **7h15** | **4h05** |
 
 ## Semana 4 (2 a 8 de novembro)
 
@@ -101,7 +112,7 @@ Atualizado pelo M no fim de cada semana. Será usado no relatório final, que de
 | Semana | M | Gonçalo Costa | Gonçalo Rodrigues | Guilherme Barros | Mário Ferreira |
 |---|---|---|---|---|---|
 | 1 | | 4h | | | |
-| 2 | | 7h | | | |
-| 3 | | 4h | | | |
+| 2 | | 7h | | 5h | |
+| 3 | | 4h | | 7h15 | |
 | 4 | | | | | |
-| **Total acumulado** | | **15h** | | | |
+| **Total acumulado** | | **15h** | | **12h15** | |
