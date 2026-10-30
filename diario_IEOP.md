@@ -25,36 +25,36 @@
 | Tarefa | M | Gonçalo Costa | Gonçalo Rodrigues | Guilherme Barros | Analista RPA |
 |---|---|---|---|---|---|
 | Reunião de equipa (escolha do tema) | | | | | |
+| Criação da conta de developer do Jasmin e de uma app no Primavera Identity | | 1h | | | |
+| Análise da Web API do Jasmin: estrutura dos endpoints, autenticação OAuth2, coleção Postman | | 2h | | | |
+| Tentativa de autenticação e de primeiro pedido à API do Jasmin | | 1h | | | |
 | | | | | | |
 | | | | | | |
-| | | | | | |
-| | | | | | |
-| | | | | | |
-| **Total da semana** | | | | | |
+| **Total da semana** | | **4h** | | | |
 
 ## Semana 2 (19 a 25 de outubro)
 
 | Tarefa | M | Gonçalo Costa | Gonçalo Rodrigues | Guilherme Barros | Analista RPA |
 |---|---|---|---|---|---|
+| Análise da API do Moloni ON (estrutura, autenticação, operações) e escolha das operações para o processo | | 2h | | | |
+| Criação da conta Moloni ON e da empresa de teste; ticket ao apoio da Moloni | | 1h | | | |
+| Configuração da empresa de teste: chave de API, séries de documentos, armazém, categorias, produtos e cliente | | 1h30 | | | |
+| Testes iniciais no Explorer (query me, IDs) e teste de stock com fatura em rascunho | | 1h | | | |
+| Redação da secção 3.1 e tabelas de dados ERP para Gonçalo R. e Guilherme | | 1h30 | | | |
 | | | | | | |
-| | | | | | |
-| | | | | | |
-| | | | | | |
-| | | | | | |
-| | | | | | |
-| **Total da semana** | | | | | |
+| **Total da semana** | | **7h** | | | |
 
 ## Semana 3 (26 de outubro a 1 de novembro)
 
 | Tarefa | M | Gonçalo Costa | Gonçalo Rodrigues | Guilherme Barros | Analista RPA |
 |---|---|---|---|---|---|
+| Testes da API no Explorer: ativação do módulo, impostos, invoiceUpdate com IVA 23%, PDF | | 1h30 | | | |
+| Correção dos impostos (IVA português) e associação aos produtos | | 0h30 | | | |
+| Atualização da secção 3.1 (figuras, dificuldades, versão .md) e referências da secção 3 | | 1h | | | |
+| Guia de ligação do Mendix ao Moloni ON (apoio a Gonçalo R.) | | 1h | | | |
 | | | | | | |
 | | | | | | |
-| | | | | | |
-| | | | | | |
-| | | | | | |
-| | | | | | |
-| **Total da semana** | | | | | |
+| **Total da semana** | | **4h** | | | |
 
 ## Semana 4 (2 a 8 de novembro)
 
@@ -95,8 +95,8 @@ Atualizado pelo M no fim de cada semana. Será usado no relatório final, que de
 
 | Semana | M | Gonçalo Costa | Gonçalo Rodrigues | Guilherme Barros | Analista RPA |
 |---|---|---|---|---|---|
-| 1 | | | | | |
-| 2 | | | | | |
-| 3 | | | | | |
+| 1 | | 4h | | | |
+| 2 | | 7h | | | |
+| 3 | | 4h | | | |
 | 4 | | | | | |
-| **Total acumulado** | | | | | |
+| **Total acumulado** | | **15h** | | | |
