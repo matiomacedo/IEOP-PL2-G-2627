@@ -50,7 +50,10 @@
 | Implementação e testes dos endpoints REST de consulta de produtos e clientes | | | | 1h30 | |
 | Implementação dos endpoints de stock e integração com as operações GraphQL do Moloni ON | | | | 1h15 | |
 | Elaboração e validação da especificação OpenAPI dos serviços REST | | | | 0h45 | |
-| **Total da semana** | | **7h** | | **5h** | **3h45** |
+| Análise do processo de assistência técnica e redação da primeira versão da secção 2.2 (intervenientes, 8 etapas, exceções e mapeamento com os diagramas BPMN e o Moloni ON) | | | 2h30 | | |
+| Modelo de domínio no Mendix: entidades (Cliente, Intervencao, CatalogoPeca, PecaUtilizada, Fatura, Recibo), enumerações de estados e associações | | | 2h | | |
+| Microflows de teste no Mendix: chamada REST à API do Moloni ON e envio de e-mail por SMTP (Mailtrap) | | | 1h30 | | |
+| **Total da semana** | | **7h** | **6h** | **5h** | **3h45** |
 
 ## Semana 3 (26 de outubro a 1 de novembro)
 
@@ -70,7 +73,20 @@
 | Atualização do README e da documentação técnica da Services Layer | | | | 0h30 | |
 | Preparação do servidor Express e publicação da Services Layer no Render | | | | 1h | |
 | Testes dos cinco endpoints REST, autenticação e comunicação com o Moloni ON através do Render | | | | 0h45 | |
-| **Total da semana** | | **4h** | | **7h15** | **4h05** |
+| Revisão da secção 2.2 e alinhamento técnico com a equipa: Gestor como sexto interveniente, secção 4 do agente RPA (n8n), Intervencao como o próprio pedido, entidade Tecnico e etapas 6 e 7 com a confirmação de que o stock só baixa com a fatura finalizada | | | 1h30 | | |
+| Descrição do componente Mendix para a secção 2.1 e proposta de tratamento de erros da camada de serviços (HTTP de erro com mensagem JSON) | | | 0h45 | | |
+| Segurança no Mendix: papéis de módulo e de utilizador (Dispatcher, Tecnico, Gestor), utilizadores de demonstração, acesso às páginas por papel e correção do erro de permissão no menu | | | 1h30 | | |
+| Páginas de gestão das entidades (Cliente, Intervencao, CatalogoPeca, Tecnico, Fatura só de leitura), menu de navegação por papel e ícones | | | 1h30 | | |
+| Personalização da página de login (TecAssist) e do tema | | | 3h | | |
+| Página inicial do Gestor com faturas por pagar e peças com stock baixo | | | 0h45 | | |
+| Diagnóstico do envio de e-mail pelo Mailtrap (leitura do log, limite de envios do plano gratuito) | | | 0h30 | | |
+| Leitura e teste do guia de ligação do Mendix ao Moloni ON (feito por Gonçalo C.) | | | 0h30 | | |
+| Camada de serviços a correr localmente: clone do repositório, ficheiro .env, arranque, teste de /api/health e importação do contrato OpenAPI no Mendix com constantes de URL e API Key | | | 1h30 | | |
+| Microflow Atualizar_Catalogo: chamada a /api/produtos/stock, estrutura de resposta, ciclo sobre as peças, criação ou atualização do CatalogoPeca, tratamento de erro e teste com a camada desligada | | | 2h | | |
+| Formulário de registo do pedido (Intervencao_NewEdit) com cliente, tipo, descrição e número de processo automático | | | 0h45 | | |
+| Página do Técnico e microflows de estado: Iniciar_Diagnostico, Enviar_Orcamento (cálculo do valor e e-mail ao cliente), Aprovar e Recusar | | | 2h30 | | |
+| Gestão das peças utilizadas na intervenção: lista, Nova_PecaUtilizada, página da peça e Guardar_PecaUtilizada (validação, stock e preço) | | | 2h | | |
+| **Total da semana** | | **4h** | **18h45** | **7h15** | **4h05** |
 
 ## Semana 4 (2 a 8 de novembro)
 
@@ -112,7 +128,7 @@ Atualizado pelo M no fim de cada semana. Será usado no relatório final, que de
 | Semana | M | Gonçalo Costa | Gonçalo Rodrigues | Guilherme Barros | Mário Ferreira |
 |---|---|---|---|---|---|
 | 1 | | 4h | | | |
-| 2 | | 7h | | 5h | |
-| 3 | | 4h | | 7h15 | |
+| 2 | | 7h | 6h | 5h | 3h45 |
+| 3 | | 4h | 18h45 | 7h15 | 4h05 |
 | 4 | | | | | |
-| **Total acumulado** | | **15h** | | **12h15** | |
+| **Total acumulado** | | **15h** | **24h45** | **12h15** | **7h50** |
