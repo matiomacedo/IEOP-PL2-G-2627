@@ -4,12 +4,13 @@ info:
   title: API de Integração — Gestão de Assistência Técnica
   version: 1.0.0
   description: >
-    API REST desenvolvida em Node.js e Express para permitir
-    a comunicação entre a aplicação Mendix, o n8n e o Moloni ON.
+    API REST implementada com workflows n8n para permitir
+    a comunicação entre a aplicação Mendix, o workflow de alerta
+    de stock e o Moloni ON.
 
 servers:
-  - url: http://localhost:3000
-    description: Servidor local de desenvolvimento
+  - url: http://localhost:5678
+    description: Instância n8n local de desenvolvimento
 
 paths:
   /api/health:
@@ -56,18 +57,8 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/Produto"
-        "401":
-          description: API Key interna não fornecida
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Erro"
         "403":
-          description: API Key interna inválida
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Erro"
+          $ref: "#/components/responses/ChaveInvalida"
         "502":
           description: Erro na comunicação ou resposta do Moloni ON
           content:
@@ -99,18 +90,8 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/StockProduto"
-        "401":
-          description: API Key interna não fornecida
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Erro"
         "403":
-          description: API Key interna inválida
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Erro"
+          $ref: "#/components/responses/ChaveInvalida"
         "502":
           description: Erro na comunicação ou resposta do Moloni ON
           content:
@@ -118,7 +99,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Erro"
 
-  /api/produtos/{id}/stock:
+  /api/produtos/stock-detalhe:
     get:
       security:
         - ApiKeyInterna: []
@@ -129,7 +110,7 @@ paths:
       operationId: consultarStockProduto
       parameters:
         - name: id
-          in: path
+          in: query
           required: true
           description: Identificador numérico positivo do produto.
           schema:
@@ -149,18 +130,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Erro"
-        "401":
-          description: API Key interna não fornecida
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Erro"
         "403":
-          description: API Key interna inválida
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Erro"
+          $ref: "#/components/responses/ChaveInvalida"
         "404":
           description: Produto não encontrado no Moloni ON
           content:
@@ -210,18 +181,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Erro"
-        "401":
-          description: API Key interna não fornecida
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Erro"
         "403":
-          description: API Key interna inválida
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Erro"
+          $ref: "#/components/responses/ChaveInvalida"
         "502":
           description: Erro na comunicação ou resposta do Moloni ON
           content:
@@ -230,6 +191,15 @@ paths:
                 $ref: "#/components/schemas/Erro"
 
 components:
+  responses:
+    ChaveInvalida:
+      description: API Key interna em falta ou inválida (resposta do n8n, em texto simples)
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: Authorization data is wrong!
+
   securitySchemes:
     ApiKeyInterna:
       type: apiKey
@@ -329,3 +299,7 @@ components:
         erro:
           type: string
           example: Não foi possível consultar os produtos.
+        codigo:
+          type: string
+          description: Presente nos erros classificados do Moloni ON.
+          example: MOLONI_AUTENTICACAO

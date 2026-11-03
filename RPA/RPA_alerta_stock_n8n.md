@@ -117,7 +117,7 @@ return [{
 
 ## 5. Ligação à arquitetura
 
-O workflow **não chama o Moloni ON diretamente**: passa pela camada de serviços do Guilherme, tal como a aplicação Mendix.
+O workflow **não chama o Moloni ON diretamente**: passa pela camada de serviços do Guilherme, tal como a aplicação Mendix. Desde a migração da camada de serviços para n8n, os dois componentes correm na mesma instância: o workflow chama `http://localhost:5678/api/produtos/stock`, o que não exige um endereço público.
 
 ```
 n8n ──REST/JSON (HTTP, X-API-Key)──► Camada de Serviços ──GraphQL (Bearer API Key)──► Moloni ON
@@ -126,7 +126,7 @@ n8n ──SMTP──► E-mail do gestor
 ```
 
 Vantagens desta decisão:
-- **A chave do Moloni ON fica num só sítio** (variável de ambiente da camada de serviços), e não espalhada pelo n8n e pelo Mendix.
+- **A chave do Moloni ON fica num só sítio** (credencial n8n usada pelo workflow `Moloni GraphQL` da camada de serviços), e não espalhada pelos vários workflows e pelo Mendix.
 - **O n8n consome REST simples**, sem ter de construir pedidos GraphQL nem tratar os erros do Moloni, que chegam dentro de respostas HTTP 200.
 - **Mudanças na API do Moloni ON** só obrigam a alterar a camada de serviços.
 
@@ -179,8 +179,8 @@ Nenhuma figura mostra chaves de API.
 
 - **Redução do stock por confirmar.** Nos testes do Gonçalo C., uma fatura em rascunho não alterou o stock; falta confirmar se a fatura finalizada o reduz. Por isso, nos testes, o alerta foi provocado definindo um stock mínimo acima do stock atual, e não consumindo peças. Quando o comportamento estiver confirmado, a demonstração será repetida com stock consumido por uma fatura.
 - **Depende do stock mínimo estar configurado** em cada peça no Moloni ON. Uma peça com mínimo 0 nunca gera alerta.
-- **Execução local.** O n8n e a camada de serviços correm, por agora, em computadores locais. O agendamento só dispara se, às 9h, o n8n estiver a correr e o workflow estiver ativo (publicado). Para funcionar todos os dias sem depender de um computador ligado, ambos têm de ser alojados num servidor acessível, o que também é necessário para a aplicação Mendix.
-- **Dependência da camada de serviços.** Se a camada de serviços estiver em baixo, o pedido falha e o alerta desse dia não é enviado. Uma melhoria é usar um workflow de erro do n8n (Error Trigger) para avisar quando a verificação falha.
+- **Execução local.** O n8n, que agora inclui a camada de serviços, corre, por agora, em computadores locais. O agendamento só dispara se, às 9h, o n8n estiver a correr e o workflow estiver ativo (publicado). Para funcionar todos os dias sem depender de um computador ligado, ambos têm de ser alojados num servidor acessível, o que também é necessário para a aplicação Mendix.
+- **Ponto único de falha.** A camada de serviços e o alerta correm na mesma instância n8n: se esta estiver em baixo, o Mendix perde o acesso ao ERP e o alerta desse dia não é enviado. Uma melhoria é usar um workflow de erro do n8n (Error Trigger) para avisar quando a verificação falha.
 - **Alertas repetidos.** Enquanto a peça não for reposta, o alerta repete-se todos os dias. Pode ser aceitável como lembrete; em alternativa, pode guardar-se a data do último aviso por peça.
 - **Stock global e não por armazém.** O endpoint devolve o stock total do produto; a empresa de teste tem um único armazém, pelo que isto não afeta o protótipo.
 - **Período de teste do Moloni ON.** A conta de teste dura 30 dias e o projeto decorre até janeiro, pelo que o acesso à API tem de ser renovado ou prolongado.

@@ -10,15 +10,16 @@ A solução centraliza a autenticação, a execução das operações GraphQL, a
 
 ## 2. Tecnologias
 
-- Node.js 22
-- JavaScript
-- Express 5
+- n8n 2.46.4 (workflows com nós Webhook, HTTP Request e Code)
+- JavaScript (apenas nos nós Code e nos scripts de teste)
 - API REST e JSON
 - GraphQL
 - OpenAPI 3.0.3
 - Autenticação por API Key
 
 ## 3. Arquitetura
+
+Cada endpoint é um workflow em `workflows/`. Todos chamam o sub-workflow `Moloni GraphQL`, que concentra o pedido ao ERP e a classificação de erros.
 
 A integração segue o seguinte fluxo:
 
@@ -27,52 +28,56 @@ A integração segue o seguinte fluxo:
 
 O Mendix é responsável pela gestão dos processos de assistência técnica, enquanto o Moloni ON centraliza os dados comerciais e administrativos.
 
-O n8n utiliza a Services Layer para consultar o stock e executar o workflow automatizado de alerta de existências abaixo do mínimo.
+O workflow de alerta de stock corre na mesma instância n8n e consome a Services Layer através da API REST. Esta instância é, por isso, um ponto único de falha para a API e para o alerta.
 
 ## 4. Instalação e configuração
 
 ### Requisitos
 
-- Node.js 22 ou versão compatível
-- npm
+- Docker
 - Acesso à API do Moloni ON
-- Credenciais de autenticação da Services Layer
 
-### Instalação
+A versão testada é a `docker.n8n.io/n8nio/n8n:2.46.4`.
 
-Na pasta `services-layer`, executar:
+### Configuração
 
-```bash
-npm install
-```
-
-Criar o ficheiro `.env` a partir de `.env.example`:
+Na pasta `services-layer`, criar os ficheiros locais e preencher os respetivos valores:
 
 ```bash
 cp .env.example .env
+cp credenciais.exemplo.json credenciais.json
 ```
 
-Configurar as variáveis de ambiente necessárias:
+| Variável               | Descrição                                               |
+| ---------------------- | ------------------------------------------------------- |
+| `N8N_ENCRYPTION_KEY`   | Chave que encripta as credenciais guardadas no n8n      |
+| `N8N_ENDPOINT_WEBHOOK` | Prefixo dos endpoints; `api` mantém os caminhos `/api/` |
+| `MOLONI_API_URL`       | Endereço da API GraphQL do Moloni ON                    |
+| `MOLONI_COMPANY_ID`    | Identificador da empresa no Moloni ON                   |
 
-| Variável            | Descrição                                           |
-| ------------------- | --------------------------------------------------- |
-| `PORT`              | Porta HTTP utilizada pela Services Layer            |
-| `INTERNAL_API_KEY`  | Chave de autenticação interna dos consumidores REST |
-| `MOLONI_API_URL`    | Endereço da API GraphQL do Moloni ON                |
-| `MOLONI_API_KEY`    | Chave de autenticação da API Moloni ON              |
-| `MOLONI_COMPANY_ID` | Identificador da empresa no Moloni ON               |
+As chaves internas e do Moloni ON ficam em `credenciais.json`. Os ficheiros `.env` e `credenciais.json` contêm informação sensível e não devem ser publicados no GitHub.
 
-O ficheiro `.env` contém informação sensível e não deve ser publicado no GitHub.
-
-### Iniciar o servidor
+### Importar e arrancar
 
 ```bash
-npm start
+IMAGEM=docker.n8n.io/n8nio/n8n:2.46.4
+n8n_cli() {
+  docker run --rm --env-file .env -v n8n_dados:/home/node/.n8n \
+    -v "$PWD/credenciais.json:/tmp/credenciais.json:ro" \
+    -v "$PWD/workflows:/tmp/workflows:ro" "$IMAGEM" "$@"
+}
+
+n8n_cli import:credentials --input=/tmp/credenciais.json
+n8n_cli import:workflow --separate --input=/tmp/workflows
+for id in SLmoloniGraphql1 SLapiHealth00001 SLapiProdutos001 SLapiStockTodos1 SLapiStockUm0001 SLapiClientes001; do
+  n8n_cli publish:workflow --id="$id"
+done
+
+docker run -d --name services-layer --env-file .env -p 5678:5678 \
+  -v n8n_dados:/home/node/.n8n "$IMAGEM"
 ```
 
-Por defeito, a Services Layer é utilizada localmente através de:
-
-`http://localhost:3000`
+A Services Layer fica disponível em `http://localhost:5678`. O workflow de alerta de stock é importado à parte, a partir de `../RPA/workflow-alerta-stock-baixo.json`, e a respetiva credencial SMTP é criada no editor do n8n.
 
 ## 5. Endpoints REST implementados
 
@@ -82,9 +87,11 @@ Por defeito, a Services Layer é utilizada localmente através de:
 | GET    | `/api/produtos`            | Consultar produtos do Moloni ON          | Sim          |
 | GET    | `/api/clientes?nif=...`    | Pesquisar clientes por NIF               | Sim          |
 | GET    | `/api/produtos/stock`      | Consultar produtos com controlo de stock | Sim          |
-| GET    | `/api/produtos/{id}/stock` | Consultar stock de um produto            | Sim          |
+| GET    | `/api/produtos/stock-detalhe?id=...` | Consultar stock de um produto  | Sim          |
 
 O contrato completo da API está documentado no ficheiro `openapi.yaml`.
+
+O stock individual usa um parâmetro de consulta porque o n8n acrescenta o identificador do webhook aos caminhos com parâmetros (`/api/<webhookId>/produtos/:id/stock`).
 
 ## 6. Autenticação
 
@@ -92,26 +99,18 @@ Os endpoints protegidos exigem uma chave interna enviada através do cabeçalho 
 
 `X-API-Key`
 
-A chave fornecida é comparada de forma segura com a configurada na variável `INTERNAL_API_KEY`.
+A verificação é feita pelo Header Auth nativo do nó Webhook. Uma chave em falta ou inválida devolve HTTP 403 com o texto simples `Authorization data is wrong!`, e não um corpo JSON.
 
-O middleware devolve:
-
-| HTTP | Situação                             |
-| ---- | ------------------------------------ |
-| 401  | Chave interna não fornecida          |
-| 403  | Chave interna inválida               |
-| 503  | Autenticação interna não configurada |
-
-A chave do Moloni ON é utilizada exclusivamente pela Services Layer e não deve ser transmitida aos consumidores REST.
+A chave do Moloni ON é utilizada exclusivamente pelo workflow `Moloni GraphQL` e não deve ser transmitida aos consumidores REST.
 
 ## 7. Exemplos de utilização
 
-Os exemplos seguintes assumem que o servidor está a funcionar em `localhost:3000` e que a variável `INTERNAL_API_KEY` está definida no terminal.
+Os exemplos seguintes assumem que o n8n está a funcionar em `localhost:5678` e que a variável `INTERNAL_API_KEY` está definida no terminal.
 
 ### Verificar o estado
 
 ```bash
-curl http://localhost:3000/api/health
+curl http://localhost:5678/api/health
 ```
 
 ### Consultar produtos
@@ -119,7 +118,7 @@ curl http://localhost:3000/api/health
 ```bash
 curl \
   -H "X-API-Key: $INTERNAL_API_KEY" \
-  http://localhost:3000/api/produtos
+  http://localhost:5678/api/produtos
 ```
 
 ### Pesquisar clientes
@@ -127,7 +126,7 @@ curl \
 ```bash
 curl \
   -H "X-API-Key: $INTERNAL_API_KEY" \
-  "http://localhost:3000/api/clientes?nif=000000000"
+  "http://localhost:5678/api/clientes?nif=000000000"
 ```
 
 ### Consultar stock
@@ -135,7 +134,7 @@ curl \
 ```bash
 curl \
   -H "X-API-Key: $INTERNAL_API_KEY" \
-  http://localhost:3000/api/produtos/stock
+  http://localhost:5678/api/produtos/stock
 ```
 
 ### Consultar stock individual
@@ -143,7 +142,7 @@ curl \
 ```bash
 curl \
   -H "X-API-Key: $INTERNAL_API_KEY" \
-  http://localhost:3000/api/produtos/363517/stock
+  "http://localhost:5678/api/produtos/stock-detalhe?id=363517"
 ```
 
 Os identificadores apresentados são exemplos da empresa de teste e podem ser diferentes noutros ambientes.
@@ -175,35 +174,32 @@ Principais códigos utilizados:
 | `MOLONI_COMUNICACAO`       | Falha de comunicação com o ERP     |
 | `MOLONI_HTTP`              | Erro HTTP do ERP                   |
 | `MOLONI_RESPOSTA_INVALIDA` | Resposta inválida ou inesperada    |
-| `ERRO_INTERNO`             | Erro inesperado na Services Layer  |
-
+| 
 Os erros classificados provenientes do Moloni ON são atualmente devolvidos com HTTP 502. Alguns erros de validação de parâmetros e respostas inesperadas são tratados diretamente pelas rotas, pelo que podem apresentar outro formato JSON.
 
 ## 9. Testes realizados
 
-Foram validados:
+O contrato é verificado com `scripts/testarContrato.js`, contra o simulador `scripts/moloniSimulado.js`, cobrindo respostas de sucesso, validação, autenticação e falhas do Moloni ON:
 
-- Arranque do servidor Express.
-- Proteção dos endpoints por `X-API-Key`.
-- Consulta real de produtos e clientes.
-- Consulta geral e individual do stock.
-- Classificação de erros GraphQL de autenticação e validação através de simulações.
-- Formatação das respostas JSON de erro.
-- Prova de conceito de criação e consulta de fatura em rascunho através de scripts GraphQL.
+```bash
+node scripts/moloniSimulado.js 4010
+node scripts/testarContrato.js http://localhost:5678 "$INTERNAL_API_KEY"
+```
 
-O endpoint `/api/produtos/stock` foi também utilizado e testado pelo workflow n8n de alerta de stock baixo.
+Para estes testes, `MOLONI_API_URL` deve apontar para o simulador (`http://host.docker.internal:4010/` em Docker) e a credencial do Moloni deve ter o valor `Bearer chave-moloni-simulada`.
+
+A migração para n8n ainda não foi validada contra o Moloni ON real nem num alojamento remoto. As consultas reais e a prova de conceito de fatura foram realizadas na versão anterior em Express, disponível no histórico do repositório.
 
 ## 10. Estado de desenvolvimento
 
 ### Implementado
 
-- Estrutura Node.js e Express.
+- Workflows n8n para os cinco endpoints REST.
 - Integração com a API GraphQL do Moloni ON.
-- Cinco endpoints REST.
-- Middleware de autenticação interna.
+- Autenticação interna por Header Auth.
 - Tratamento e classificação de erros.
 - Contrato OpenAPI.
-- Integração de consulta de stock com o workflow n8n.
+- Integração de consulta de stock com o workflow de alerta.
 
 ### Em desenvolvimento ou previsto
 

@@ -1,0 +1,20 @@
+[
+  {
+    "id": "SLchaveInterna01",
+    "name": "Services Layer X-API-Key",
+    "type": "httpHeaderAuth",
+    "data": { "name": "X-API-Key", "value": "PREENCHER_CHAVE_INTERNA" }
+  },
+  {
+    "id": "SLchaveMoloni001",
+    "name": "Moloni ON Authorization",
+    "type": "httpHeaderAuth",
+    "data": { "name": "Authorization", "value": "Bearer PREENCHER_CHAVE_MOLONI" }
+  },
+  {
+    "id": "TpMUAxdEuzKt7drZ",
+    "name": "Header Auth account",
+    "type": "httpHeaderAuth",
+    "data": { "name": "X-API-Key", "value": "PREENCHER_CHAVE_INTERNA" }
+  }
+]
