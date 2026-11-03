@@ -174,8 +174,8 @@ Principais códigos utilizados:
 | `MOLONI_COMUNICACAO`       | Falha de comunicação com o ERP     |
 | `MOLONI_HTTP`              | Erro HTTP do ERP                   |
 | `MOLONI_RESPOSTA_INVALIDA` | Resposta inválida ou inesperada    |
-| 
-Os erros classificados provenientes do Moloni ON são atualmente devolvidos com HTTP 502. Alguns erros de validação de parâmetros e respostas inesperadas são tratados diretamente pelas rotas, pelo que podem apresentar outro formato JSON.
+
+Os erros classificados provenientes do Moloni ON são atualmente devolvidos com HTTP 502. Alguns erros de validação de parâmetros e respostas inesperadas são tratados diretamente nos workflows dos endpoints, pelo que podem apresentar outro formato JSON.
 
 ## 9. Testes realizados
 
@@ -187,6 +187,8 @@ node scripts/testarContrato.js http://localhost:5678 "$INTERNAL_API_KEY"
 ```
 
 Para estes testes, `MOLONI_API_URL` deve apontar para o simulador (`http://host.docker.internal:4010/` em Docker) e a credencial do Moloni deve ter o valor `Bearer chave-moloni-simulada`.
+
+Os scripts `testarMoloni.js` e `testarProdutos.js` consultam diretamente o Moloni ON (`node --env-file=<ficheiro> scripts/testarMoloni.js`, com `MOLONI_API_URL`, `MOLONI_API_KEY` e `MOLONI_COMPANY_ID` definidos).
 
 A migração para n8n ainda não foi validada contra o Moloni ON real nem num alojamento remoto. As consultas reais e a prova de conceito de fatura foram realizadas na versão anterior em Express, disponível no histórico do repositório.
 

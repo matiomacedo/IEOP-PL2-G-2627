@@ -1,5 +1,3 @@
-require("dotenv").config();
-
 const API_URL = process.env.MOLONI_API_URL;
 const API_KEY = process.env.MOLONI_API_KEY;
 
