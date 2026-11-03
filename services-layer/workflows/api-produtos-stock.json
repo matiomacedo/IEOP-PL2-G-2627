@@ -40,6 +40,7 @@
       ]
     },
     {
+      "onError": "continueErrorOutput",
       "name": "Moloni GraphQL",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
@@ -76,6 +77,7 @@
       "parameters": {
         "jsCode": "const r = $input.first().json;\nif (!r.ok) {\n  return [{ json: { estado: r.estadoHTTP, corpo: { erro: \"Não foi possível consultar o stock dos produtos.\", codigo: `MOLONI_${r.tipo}` } } }];\n}\n\nconst operacao = r.data?.products;\nif (operacao?.errors?.length) {\n  return [{ json: { estado: 502, corpo: { erro: \"O Moloni ON devolveu erros na consulta de stock.\" } } }];\n}\n\nif (!Array.isArray(operacao?.data)) {\n  return [{ json: { estado: 502, corpo: { erro: \"Resposta inesperada do Moloni ON.\" } } }];\n}\nconst produtos = operacao.data\n  .filter((produto) => produto.hasStock === true)\n  .map((produto) => ({\n    productId: produto.productId,\n    name: produto.name,\n    reference: produto.reference,\n    stockAtual: produto.stock,\n    stockMinimo: produto.minStock,\n  }));\nreturn [{ json: { estado: 200, corpo: { total: produtos.length, produtos } } }];\n"
       },
+      "onError": "continueErrorOutput",
       "id": "afab5540-b000-57cc-9be2-0f58950e5a67",
       "position": [
         720,
@@ -96,6 +98,23 @@
       "id": "cad19324-5ff4-57a4-8c97-b80a1a6455e0",
       "position": [
         960,
+        0
+      ]
+    },
+    {
+      "name": "Erro interno",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ erro: \"Ocorreu um erro interno no servidor.\", codigo: \"ERRO_INTERNO\" }) }}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "id": "e3ea0d19-a7b1-57b6-bf3d-1853b2d47399",
+      "position": [
+        1200,
         0
       ]
     }
@@ -131,6 +150,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Erro interno",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -142,6 +168,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Erro interno",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     }
@@ -149,7 +182,10 @@
   "active": false,
   "settings": {
     "executionOrder": "v1",
-    "timezone": "Europe/Lisbon"
+    "timezone": "Europe/Lisbon",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "none",
+    "saveManualExecutions": false
   },
   "pinData": {},
   "versionId": "e7822741-a070-513d-b3b0-660fdb3ceb42"

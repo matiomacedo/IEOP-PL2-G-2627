@@ -6,6 +6,7 @@ node_modules/
 .env.*
 !.env.example
 services-layer/credenciais.json
+services-layer/.importacao/
 
 # Logs
 *.log

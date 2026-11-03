@@ -46,8 +46,8 @@ A lista do professor inclui duas famílias de ferramentas:
 1. **O Moloni ON tem API.** Uma automatização pela interface (UiPath, UI.Vision) seria mais lenta e mais frágil, porque deixa de funcionar quando o aspeto da aplicação muda. A integração por API é a solução tecnicamente mais adequada.
 2. **Corre localmente, sem limites de execuções.** O n8n pode ser instalado no próprio computador ou num servidor (self-hosted), gratuitamente. O Make e o Zapier funcionam apenas na cloud e os planos gratuitos limitam o número de execuções e funcionalidades, o que é um problema para uma tarefa diária.
 3. **Liga-se a qualquer API.** Nenhuma das ferramentas tem integração pronta para o Moloni ON. O n8n disponibiliza nós genéricos (HTTP Request e GraphQL) para chamar diretamente qualquer serviço REST ou GraphQL.
-4. **Cobre o caso sem programação.** Agendamento (Schedule Trigger), condições (If), transformação de dados (Split Out) e envio de e-mail (Send Email) são nós prontos. Foi usado código apenas num nó, para formatar o texto do alerta.
-5. **Os dados ficam do nosso lado.** Ao correr localmente, as credenciais e os dados de stock não passam por um serviço de terceiros.
+4. **Cobre o caso sem programação.** Agendamento (Schedule Trigger), condições (If), transformação de dados (Split Out) e pedidos HTTP (HTTP Request, usado também para enviar o e-mail) são nós prontos. Foi usado código apenas num nó, para formatar o texto do alerta.
+5. **Controlo sobre a instalação.** O n8n pode ser alojado pelo próprio grupo. Na solução final (Render e Supabase), as credenciais ficam encriptadas e os dados passam por esses serviços, escolhidos pelo grupo, e pelo Brevo no envio do e-mail.
 
 **Licença.** O n8n é distribuído sob um modelo *fair-code* (Sustainable Use License): o código é público e pode ser usado e alojado gratuitamente para fins próprios, mas não é *open source* no sentido estrito da definição.
 
@@ -71,7 +71,7 @@ If ── stockAtual < stockMinimo ?
 Code ── monta o alerta     (sem ação)
    │
    ▼
-Send Email ── envia o alerta ao gestor
+Enviar e-mail (Brevo) ── envia o alerta ao gestor
 ```
 
 | Nó | Tipo | Função |
@@ -81,7 +81,7 @@ Send Email ── envia o alerta ao gestor
 | Split Out | Transformação | A resposta chega num único item com a lista `produtos`; este nó transforma-a num item por peça, para poder ser avaliada individualmente. |
 | If | Decisão | Compara `stockAtual` com `stockMinimo`. As peças abaixo do mínimo seguem pelo ramo *true*; as restantes pelo ramo *false*, que termina sem ação. |
 | Code (JavaScript) | Transformação | Junta todas as peças do ramo *true* num único item com o assunto e o corpo do e-mail. |
-| Send Email | Notificação | Envia o alerta ao gestor por SMTP, em texto simples. O assunto e o corpo vêm do nó anterior (`{{ $json.assunto }}` e `{{ $json.corpo }}`). Os dados da conta de e-mail ficam guardados como credencial encriptada do n8n (SMTP). |
+| Enviar e-mail (Brevo) | Notificação | Envia o alerta ao gestor através da API HTTP do Brevo, em texto simples. O assunto e o corpo vêm do nó anterior (`{{ $json.assunto }}` e `{{ $json.corpo }}`). A chave da API fica guardada como credencial encriptada do n8n. A versão inicial usava SMTP, que o plano gratuito do Render bloqueia. |
 
 Exemplo da resposta da camada de serviços (`GET /api/produtos/stock`):
 
@@ -96,9 +96,9 @@ Exemplo da resposta da camada de serviços (`GET /api/produtos/stock`):
 }
 ```
 
-Se nenhuma peça estiver abaixo do mínimo, o ramo *true* do If não produz itens; no n8n, um nó sem itens de entrada não é executado, pelo que nem o nó Code nem o Send Email correm e não é enviado nenhum e-mail.
+Se nenhuma peça estiver abaixo do mínimo, o ramo *true* do If não produz itens; no n8n, um nó sem itens de entrada não é executado, pelo que nem o nó Code nem o envio correm e não é enviado nenhum e-mail.
 
-O workflow exportado está em `RPA/workflow-alerta-stock-baixo.json` e pode ser importado noutra instância do n8n. O ficheiro contém apenas o nome e o identificador das credenciais, não os seus valores, que têm de ser recriados na instância de destino.
+O workflow exportado está em `RPA/workflow-alerta-stock-baixo.json` e pode ser importado noutra instância do n8n, conforme o README de `services-layer`. O ficheiro contém apenas o nome e o identificador das credenciais, não os seus valores, que têm de ser recriados na instância de destino.
 
 Código do nó que monta o alerta:
 
@@ -117,12 +117,12 @@ return [{
 
 ## 5. Ligação à arquitetura
 
-O workflow **não chama o Moloni ON diretamente**: passa pela camada de serviços do Guilherme, tal como a aplicação Mendix. Desde a migração da camada de serviços para n8n, os dois componentes correm na mesma instância: o workflow chama `http://localhost:5678/api/produtos/stock`, o que não exige um endereço público.
+O workflow **não chama o Moloni ON diretamente**: passa pela camada de serviços do Guilherme, tal como a aplicação Mendix. Desde a migração da camada de serviços para n8n, os dois componentes correm na mesma instância: o workflow chama `http://127.0.0.1:5678/api/produtos/stock`, o que não exige um endereço público.
 
 ```
 n8n ──REST/JSON (HTTP, X-API-Key)──► Camada de Serviços ──GraphQL (Bearer API Key)──► Moloni ON
                                          GET /api/produtos/stock           query products { stock minStock }
-n8n ──SMTP──► E-mail do gestor
+n8n ──HTTPS──► API do Brevo ──► E-mail do gestor
 ```
 
 Vantagens desta decisão:
@@ -136,7 +136,7 @@ O endpoint `GET /api/produtos/stock` foi criado pelo Guilherme especificamente p
 
 **Para a secção 2.1 (diagrama de arquitetura, Guilherme).** Componente «Automatização (n8n)», com duas ligações:
 - n8n → Camada de Serviços: REST/JSON, `GET /api/produtos/stock`, autenticação por API Key interna (`X-API-Key`);
-- n8n → Servidor de e-mail: SMTP.
+- n8n → API do Brevo: HTTPS.
 Tecnologia: n8n (Node.js), self-hosted. Execução agendada (diária).
 
 **Para o ponto 4 da secção 2.2 (Gonçalo R.).** Texto proposto para substituir o atual, que ainda descreve o acompanhamento de pagamentos:
@@ -156,6 +156,8 @@ Tecnologia: n8n (Node.js), self-hosted. Execução agendada (diária).
 - **26 e 27 de outubro de 2026.** Para os testes foi criada uma conta Gmail do projeto, que faz de gestor e é usada como remetente e destinatário. O envio usa o servidor SMTP do Gmail (`smtp.gmail.com`, porta 465, SSL/TLS) com uma palavra-passe de aplicação, guardada como credencial encriptada do n8n; o teste de ligação da credencial foi bem-sucedido. Com o gatilho manual, o servidor aceitou o envio do alerta (Figuras 8 e 9). Foi depois adicionado o Schedule Trigger, com o fuso horário Europe/Lisbon definido nas definições do workflow. Para testar o agendamento sem esperar pelas 9h, a hora foi colocada temporariamente para as 00:25 e o workflow foi publicado: às 00:25 o n8n executou o workflow sozinho, sem intervenção manual (execução concluída em 1,4 s), e o e-mail «Alerta de stock baixo: 1 peça(s)», com o Filtro de ar, chegou à caixa do gestor (Figuras 10 a 12). No histórico de execuções, esta execução distingue-se das execuções manuais de teste. No fim, o agendamento foi reposto para as 9h e o workflow foi exportado.
 
 **Figuras** (em `RPA/prints/`):
+
+As figuras registam os testes da versão inicial, com SMTP e a camada de serviços em Express. O diagrama editável (`RPA/diagrama-workflow-alerta-stock.svg`) já mostra a versão atual; a Figura 13 ainda não foi regenerada.
 
 | Figura | Ficheiro | Descrição |
 |---|---|---|
@@ -181,6 +183,7 @@ Nenhuma figura mostra chaves de API.
 - **Depende do stock mínimo estar configurado** em cada peça no Moloni ON. Uma peça com mínimo 0 nunca gera alerta.
 - **Execução local.** O n8n, que agora inclui a camada de serviços, corre, por agora, em computadores locais. O agendamento só dispara se, às 9h, o n8n estiver a correr e o workflow estiver ativo (publicado). Para funcionar todos os dias sem depender de um computador ligado, ambos têm de ser alojados num servidor acessível, o que também é necessário para a aplicação Mendix.
 - **Ponto único de falha.** A camada de serviços e o alerta correm na mesma instância n8n: se esta estiver em baixo, o Mendix perde o acesso ao ERP e o alerta desse dia não é enviado. Uma melhoria é usar um workflow de erro do n8n (Error Trigger) para avisar quando a verificação falha.
+- **Envio pelo Brevo por validar.** O envio foi testado apenas contra um simulador. Falta validar o envio real, com o remetente verificado no Brevo.
 - **Alertas repetidos.** Enquanto a peça não for reposta, o alerta repete-se todos os dias. Pode ser aceitável como lembrete; em alternativa, pode guardar-se a data do último aviso por peça.
 - **Stock global e não por armazém.** O endpoint devolve o stock total do produto; a empresa de teste tem um único armazém, pelo que isto não afeta o protótipo.
 - **Período de teste do Moloni ON.** A conta de teste dura 30 dias e o projeto decorre até janeiro, pelo que o acesso à API tem de ser renovado ou prolongado.
@@ -213,3 +216,5 @@ Totais por semana: **Semana 1:** 10h00 (3h00 + 7h00 da certificação) · **Sema
 [6] UiPath. *UiPath Platform*. https://www.uipath.com/ (acedido a 26/10/2026)
 [7] UI.Vision. *UI.Vision RPA*. https://ui.vision/ (acedido a 26/10/2026)
 [8] Moloni ON. *Documentação da API*. https://docs.molonion.pt/ (acedido a 26/10/2026)
+[9] Brevo. *Send a transactional email*. https://developers.brevo.com/docs/send-a-transactional-email (acedido a 03/11/2026)
+[10] Render. *Deploy for Free*. https://render.com/docs/free (acedido a 03/11/2026)

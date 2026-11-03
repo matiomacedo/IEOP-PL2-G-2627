@@ -17,6 +17,7 @@ paths:
     get:
       security: []
       summary: Verificar o estado da Services Layer
+      description: Responde apenas a GET. Para monitorização, usar o endpoint /healthz do n8n.
       operationId: verificarEstado
       responses:
         "200":
@@ -59,6 +60,8 @@ paths:
                       $ref: "#/components/schemas/Produto"
         "403":
           $ref: "#/components/responses/ChaveInvalida"
+        "500":
+          $ref: "#/components/responses/ErroInterno"
         "502":
           description: Erro na comunicação ou resposta do Moloni ON
           content:
@@ -92,6 +95,8 @@ paths:
                       $ref: "#/components/schemas/StockProduto"
         "403":
           $ref: "#/components/responses/ChaveInvalida"
+        "500":
+          $ref: "#/components/responses/ErroInterno"
         "502":
           description: Erro na comunicação ou resposta do Moloni ON
           content:
@@ -132,6 +137,8 @@ paths:
                 $ref: "#/components/schemas/Erro"
         "403":
           $ref: "#/components/responses/ChaveInvalida"
+        "500":
+          $ref: "#/components/responses/ErroInterno"
         "404":
           description: Produto não encontrado no Moloni ON
           content:
@@ -183,6 +190,8 @@ paths:
                 $ref: "#/components/schemas/Erro"
         "403":
           $ref: "#/components/responses/ChaveInvalida"
+        "500":
+          $ref: "#/components/responses/ErroInterno"
         "502":
           description: Erro na comunicação ou resposta do Moloni ON
           content:
@@ -193,12 +202,18 @@ paths:
 components:
   responses:
     ChaveInvalida:
-      description: API Key interna em falta ou inválida (resposta do n8n, em texto simples)
+      description: >
+        API Key interna em falta ou inválida. Resposta do n8n com o texto
+        simples "Authorization data is wrong!", sem Content-Type.
+    ErroInterno:
+      description: >
+        Erro inesperado, em JSON com o código ERRO_INTERNO. Se a chave interna
+        não estiver configurada, o n8n devolve o texto simples
+        "No authentication data defined on node!".
       content:
-        text/plain:
+        application/json:
           schema:
-            type: string
-            example: Authorization data is wrong!
+            $ref: "#/components/schemas/Erro"
 
   securitySchemes:
     ApiKeyInterna:
@@ -301,5 +316,5 @@ components:
           example: Não foi possível consultar os produtos.
         codigo:
           type: string
-          description: Presente nos erros classificados do Moloni ON.
+          description: Presente nos erros classificados do Moloni ON e nos erros internos.
           example: MOLONI_AUTENTICACAO

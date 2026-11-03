@@ -74,6 +74,7 @@
       ]
     },
     {
+      "onError": "continueErrorOutput",
       "name": "Moloni GraphQL",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
@@ -110,6 +111,7 @@
       "parameters": {
         "jsCode": "const r = $input.first().json;\nif (!r.ok) {\n  return [{ json: { estado: r.estadoHTTP, corpo: { erro: \"Não foi possível consultar os clientes.\", codigo: `MOLONI_${r.tipo}` } } }];\n}\n\nconst operacao = r.data?.customers;\nif (operacao?.errors?.length) {\n  return [{ json: { estado: 502, corpo: { erro: \"O Moloni ON devolveu erros na consulta de clientes.\" } } }];\n}\n\nconst clientes = operacao?.data;\nif (!Array.isArray(clientes)) {\n  return [{ json: { estado: 502, corpo: { erro: \"Resposta inesperada do Moloni ON.\" } } }];\n}\nreturn [{ json: { estado: 200, corpo: { total: clientes.length, clientes } } }];\n"
       },
+      "onError": "continueErrorOutput",
       "id": "ec002efb-173b-5b8a-93d5-5ea191bc6b00",
       "position": [
         960,
@@ -130,6 +132,23 @@
       "id": "a48ccecc-7a23-553e-abb6-2fc4b523a8db",
       "position": [
         1200,
+        0
+      ]
+    },
+    {
+      "name": "Erro interno",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ erro: \"Ocorreu um erro interno no servidor.\", codigo: \"ERRO_INTERNO\" }) }}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "id": "f809c724-64a1-5b16-9beb-4dab04de93fa",
+      "position": [
+        1440,
         0
       ]
     }
@@ -183,6 +202,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Erro interno",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -194,6 +220,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Erro interno",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     }
@@ -201,7 +234,10 @@
   "active": false,
   "settings": {
     "executionOrder": "v1",
-    "timezone": "Europe/Lisbon"
+    "timezone": "Europe/Lisbon",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "none",
+    "saveManualExecutions": false
   },
   "pinData": {},
   "versionId": "c01b2370-3bf7-5956-9511-fed2468edab5"

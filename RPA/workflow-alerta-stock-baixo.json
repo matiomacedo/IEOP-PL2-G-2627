@@ -47,7 +47,7 @@
     },
     {
       "parameters": {
-        "url": "http://localhost:5678/api/produtos/stock",
+        "url": "http://127.0.0.1:5678/api/produtos/stock",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "options": {}
@@ -96,28 +96,27 @@
     },
     {
       "parameters": {
-        "fromEmail": "chefep77@gmail.com",
-        "toEmail": "chefep77@gmail.com",
-        "subject": "={{ $json.assunto }}",
-        "emailFormat": "text",
-        "text": "={{ $json.corpo }}",
-        "options": {
-          "appendAttribution": false
-        }
+        "method": "POST",
+        "url": "https://api.brevo.com/v3/smtp/email",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ sender: { name: \"Alerta de stock\", email: \"chefep77@gmail.com\" }, to: [{ email: \"chefep77@gmail.com\" }], subject: $json.assunto, textContent: $json.corpo }) }}",
+        "options": {}
       },
-      "type": "n8n-nodes-base.emailSend",
-      "typeVersion": 2.1,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
       "position": [
         1120,
         -96
       ],
       "id": "c4c6a5ce-a37e-40a1-b494-cb267f10c323",
-      "name": "Send an Email",
-      "webhookId": "479ab6f4-428a-4c46-9390-0a24dc0f98c5",
+      "name": "Enviar e-mail (Brevo)",
       "credentials": {
-        "smtp": {
-          "id": "pW9Tkam50KSkCuqr",
-          "name": "SMTP account"
+        "httpHeaderAuth": {
+          "id": "SLchaveBrevo0001",
+          "name": "Brevo API Key"
         }
       }
     },
@@ -191,7 +190,7 @@
       "main": [
         [
           {
-            "node": "Send an Email",
+            "node": "Enviar e-mail (Brevo)",
             "type": "main",
             "index": 0
           }

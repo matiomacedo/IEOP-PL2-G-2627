@@ -13,6 +13,7 @@ const FILTRO = { productId: 1, name: "Filtro de ar", reference: "dr" };
 const STOCK = { ...FILTRO, stockAtual: 10, stockMinimo: 15 };
 // Resposta do Header Auth nativo do n8n: texto simples, igual para chave em falta ou errada.
 const ERRO_CHAVE = "Authorization data is wrong!";
+const ERRO_INTERNO = { erro: "Ocorreu um erro interno no servidor.", codigo: "ERRO_INTERNO" };
 const ERRO_PRODUTOS = "Não foi possível consultar os produtos.";
 
 const casos = [
@@ -49,11 +50,35 @@ const casos = [
   ["NIF vazio", "ok", "/api/clientes?nif=%20", CHAVE, 400, { erro: "O parâmetro nif é obrigatório." }],
   ["chave em falta", "ok", "/api/produtos", null, 403, ERRO_CHAVE],
   ["chave errada", "ok", "/api/produtos", "chave-errada", 403, ERRO_CHAVE],
+  ["identificador acima de Int", "ok", "/api/produtos/stock-detalhe?id=2147483648", CHAVE, 502, {
+    erro: "Não foi possível consultar o stock do produto.",
+    codigo: "MOLONI_OPERACAO",
+  }],
+  ["erro inesperado", "graphql_malformado", "/api/produtos", CHAVE, 500, ERRO_INTERNO],
+  ["erro inesperado no stock", "graphql_malformado", "/api/produtos/stock", CHAVE, 500, ERRO_INTERNO],
+  ["erro inesperado num produto", "graphql_malformado", "/api/produtos/stock-detalhe?id=1", CHAVE, 500, ERRO_INTERNO],
+  ["erro inesperado nos clientes", "graphql_malformado", "/api/clientes?nif=1", CHAVE, 500, ERRO_INTERNO],
+  ...[
+    ["/api/produtos", "dados_inesperados"],
+    ["/api/produtos/stock", "dados_inesperados"],
+    ["/api/clientes?nif=1", "dados_inesperados"],
+  ].map(([caminho, modo]) => [`resposta inesperada: ${caminho}`, modo, caminho, CHAVE, 502, {
+    erro: "Resposta inesperada do Moloni ON.",
+  }]),
+  ...[
+    ["/api/produtos/stock", "Não foi possível consultar o stock dos produtos."],
+    ["/api/produtos/stock-detalhe?id=1", "Não foi possível consultar o stock do produto."],
+    ["/api/clientes?nif=1", "Não foi possível consultar os clientes."],
+  ].map(([caminho, erro]) => [`Moloni indisponível: ${caminho}`, "http_500", caminho, CHAVE, 502, {
+    erro,
+    codigo: "MOLONI_HTTP",
+  }]),
   ...[
     ["graphql_autenticacao", "MOLONI_AUTENTICACAO"],
     ["graphql_validacao", "MOLONI_VALIDACAO"],
     ["graphql_operacao", "MOLONI_OPERACAO"],
     ["http_401", "MOLONI_AUTENTICACAO"],
+    ["http_403", "MOLONI_AUTENTICACAO"],
     ["http_500", "MOLONI_HTTP"],
     ["json_invalido", "MOLONI_RESPOSTA_INVALIDA"],
     ["sem_dados", "MOLONI_RESPOSTA_INVALIDA"],

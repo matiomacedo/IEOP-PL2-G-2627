@@ -74,6 +74,7 @@
       ]
     },
     {
+      "onError": "continueErrorOutput",
       "name": "Moloni GraphQL",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
@@ -110,6 +111,7 @@
       "parameters": {
         "jsCode": "const r = $input.first().json;\nif (!r.ok) {\n  return [{ json: { estado: r.estadoHTTP, corpo: { erro: \"Não foi possível consultar o stock do produto.\", codigo: `MOLONI_${r.tipo}` } } }];\n}\n\nconst operacao = r.data?.product;\nif (operacao?.errors?.length) {\n  return [{ json: { estado: 502, corpo: { erro: \"O Moloni ON devolveu erros na consulta de stock.\" } } }];\n}\n\nconst produto = operacao?.data;\nif (!produto || typeof produto !== \"object\") {\n  return [{ json: { estado: 404, corpo: { erro: \"Produto não encontrado.\" } } }];\n}\nreturn [{ json: { estado: 200, corpo: {\n  productId: produto.productId,\n  name: produto.name,\n  hasStock: produto.hasStock,\n  stockAtual: produto.stock,\n  stockMinimo: produto.minStock,\n  armazens: (produto.warehouses || []).map((armazem) => ({\n    warehouseId: armazem.warehouseId,\n    stockAtual: armazem.stock,\n    stockMinimo: armazem.minStock,\n  })),\n} } }];\n"
       },
+      "onError": "continueErrorOutput",
       "id": "78a9d4ab-d0dc-528f-a6fb-337d9cae4740",
       "position": [
         960,
@@ -130,6 +132,23 @@
       "id": "3f9e0200-bcf1-5964-8988-1388f79a3c2c",
       "position": [
         1200,
+        0
+      ]
+    },
+    {
+      "name": "Erro interno",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ erro: \"Ocorreu um erro interno no servidor.\", codigo: \"ERRO_INTERNO\" }) }}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "id": "f30262a2-827b-5808-a3b9-0cc7edd1e0da",
+      "position": [
+        1440,
         0
       ]
     }
@@ -183,6 +202,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Erro interno",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -194,6 +220,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Erro interno",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     }
@@ -201,7 +234,10 @@
   "active": false,
   "settings": {
     "executionOrder": "v1",
-    "timezone": "Europe/Lisbon"
+    "timezone": "Europe/Lisbon",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "none",
+    "saveManualExecutions": false
   },
   "pinData": {},
   "versionId": "ce857b58-aced-59ac-850d-32d86d42a0a7"

@@ -51,9 +51,9 @@
   <text x="1225" y="136" text-anchor="middle" class="s">Junta as peças num</text>
   <text x="1225" y="156" text-anchor="middle" class="s">único alerta</text>
 
-  <!-- Send Email -->
+  <!-- Enviar e-mail -->
   <rect x="1350" y="80" width="170" height="96" rx="10" fill="#e0f2f1" stroke="#00897b" stroke-width="2"/>
-  <text x="1435" y="112" text-anchor="middle" class="t">Send Email</text>
+  <text x="1435" y="112" text-anchor="middle" class="t">Enviar e-mail (Brevo)</text>
   <text x="1435" y="136" text-anchor="middle" class="s">Assunto e corpo</text>
   <text x="1435" y="156" text-anchor="middle" class="s">vindos do Code</text>
 
@@ -78,14 +78,14 @@
 
   <rect x="320" y="474" width="220" height="86" rx="10" fill="#ffffff" stroke="#3949ab" stroke-width="2"/>
   <text x="430" y="508" text-anchor="middle" class="t">Camada de Serviços</text>
-  <text x="430" y="532" text-anchor="middle" class="s">Node.js + Express (REST)</text>
+  <text x="430" y="532" text-anchor="middle" class="s">Workflows n8n (REST)</text>
 
   <rect x="640" y="474" width="220" height="86" rx="10" fill="#ffffff" stroke="#555" stroke-width="2"/>
   <text x="750" y="508" text-anchor="middle" class="t">Moloni ON</text>
   <text x="750" y="532" text-anchor="middle" class="s">ERP (API GraphQL)</text>
 
   <rect x="1350" y="474" width="170" height="86" rx="10" fill="#ffffff" stroke="#00897b" stroke-width="2"/>
-  <text x="1435" y="508" text-anchor="middle" class="t">Servidor SMTP</text>
+  <text x="1435" y="508" text-anchor="middle" class="t">API do Brevo</text>
   <text x="1435" y="532" text-anchor="middle" class="s">Gmail</text>
 
   <rect x="1350" y="600" width="170" height="70" rx="10" fill="#ffffff" stroke="#00897b" stroke-width="2"/>
@@ -99,7 +99,7 @@
   <line x1="540" y1="517" x2="636" y2="517" stroke="#555" stroke-width="2" marker-start="url(#a)" marker-end="url(#a)"/>
   <text x="588" y="507" text-anchor="middle" class="l">GraphQL</text>
   <line x1="1435" y1="178" x2="1435" y2="470" stroke="#00897b" stroke-width="2" marker-end="url(#a)"/>
-  <text x="1423" y="320" text-anchor="end" class="l">SMTP</text>
+  <text x="1423" y="320" text-anchor="end" class="l">HTTPS</text>
   <text x="1423" y="338" text-anchor="end" class="l">(porta 465, SSL)</text>
   <line x1="1435" y1="560" x2="1435" y2="596" stroke="#00897b" stroke-width="2" marker-end="url(#a)"/>
 </svg>
