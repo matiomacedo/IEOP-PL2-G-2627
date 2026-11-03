@@ -47,7 +47,7 @@
     },
     {
       "parameters": {
-        "url": "http://localhost:3000/api/produtos/stock",
+        "url": "http://localhost:5678/api/produtos/stock",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "options": {}

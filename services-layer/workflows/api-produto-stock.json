@@ -1,0 +1,208 @@
+{
+  "id": "SLapiStockUm0001",
+  "name": "API - GET /api/produtos/stock-detalhe",
+  "nodes": [
+    {
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "webhookId": "b1dcb4a1-136e-5abb-8cba-23df12f94358",
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "produtos/stock-detalhe",
+        "responseMode": "responseNode",
+        "options": {},
+        "authentication": "headerAuth"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "SLchaveInterna01",
+          "name": "Services Layer X-API-Key"
+        }
+      },
+      "id": "7bfcb120-45b4-5b90-a14e-d6de21469afc",
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Validar pedido",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "parameters": {
+        "jsCode": "const productId = Number($input.first().json.query.id);\nif (!Number.isSafeInteger(productId) || productId <= 0) {\n  return [{ json: { estado: 400, corpo: { erro: \"O identificador do produto deve ser um número inteiro positivo.\" } } }];\n}\nreturn [{ json: { query: `\n  query ($companyId: Int!, $productId: Int!) {\n    product(companyId: $companyId, productId: $productId) {\n      errors { field msg }\n      data {\n        productId name hasStock stock minStock\n        warehouses { warehouseId stock minStock }\n      }\n    }\n  }`, variables: { productId } } }];"
+      },
+      "id": "3b251e03-a302-5a1f-9ecf-2c8accc3056a",
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "name": "Pedido válido?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a1b2c3d4-0000-4000-8000-000000000001",
+              "leftValue": "={{ $json.estado }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "aecfb2ca-9b4b-5ae6-b39a-f33afd412bce",
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "name": "Moloni GraphQL",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "SLmoloniGraphql1"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "once",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "47a9f53c-b55f-5023-9b16-86a66c9c1993",
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "name": "Formatar resposta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "parameters": {
+        "jsCode": "const r = $input.first().json;\nif (!r.ok) {\n  return [{ json: { estado: r.estadoHTTP, corpo: { erro: \"Não foi possível consultar o stock do produto.\", codigo: `MOLONI_${r.tipo}` } } }];\n}\n\nconst operacao = r.data?.product;\nif (operacao?.errors?.length) {\n  return [{ json: { estado: 502, corpo: { erro: \"O Moloni ON devolveu erros na consulta de stock.\" } } }];\n}\n\nconst produto = operacao?.data;\nif (!produto || typeof produto !== \"object\") {\n  return [{ json: { estado: 404, corpo: { erro: \"Produto não encontrado.\" } } }];\n}\nreturn [{ json: { estado: 200, corpo: {\n  productId: produto.productId,\n  name: produto.name,\n  hasStock: produto.hasStock,\n  stockAtual: produto.stock,\n  stockMinimo: produto.minStock,\n  armazens: (produto.warehouses || []).map((armazem) => ({\n    warehouseId: armazem.warehouseId,\n    stockAtual: armazem.stock,\n    stockMinimo: armazem.minStock,\n  })),\n} } }];\n"
+      },
+      "id": "78a9d4ab-d0dc-528f-a6fb-337d9cae4740",
+      "position": [
+        960,
+        0
+      ]
+    },
+    {
+      "name": "Responder",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json.corpo) }}",
+        "options": {
+          "responseCode": "={{ $json.estado }}"
+        }
+      },
+      "id": "3f9e0200-bcf1-5964-8988-1388f79a3c2c",
+      "position": [
+        1200,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validar pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar pedido": {
+      "main": [
+        [
+          {
+            "node": "Pedido válido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pedido válido?": {
+      "main": [
+        [
+          {
+            "node": "Moloni GraphQL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Moloni GraphQL": {
+      "main": [
+        [
+          {
+            "node": "Formatar resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatar resposta": {
+      "main": [
+        [
+          {
+            "node": "Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Lisbon"
+  },
+  "pinData": {},
+  "versionId": "ce857b58-aced-59ac-850d-32d86d42a0a7"
+}

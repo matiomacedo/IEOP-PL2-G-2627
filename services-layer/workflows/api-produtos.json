@@ -1,0 +1,156 @@
+{
+  "id": "SLapiProdutos001",
+  "name": "API - GET /api/produtos",
+  "nodes": [
+    {
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "webhookId": "01006349-b695-5eb4-81a2-f6273dca4c30",
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "produtos",
+        "responseMode": "responseNode",
+        "options": {},
+        "authentication": "headerAuth"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "SLchaveInterna01",
+          "name": "Services Layer X-API-Key"
+        }
+      },
+      "id": "cdb1c17a-ff4b-50ea-a619-42974e4fb416",
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Preparar consulta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "parameters": {
+        "jsCode": "return [{ json: { query: `\n  query ($companyId: Int!) {\n    products(companyId: $companyId) {\n      errors { field msg }\n      data { productId name reference }\n    }\n  }`, variables: {} } }];"
+      },
+      "id": "e322ab81-782b-5750-8206-484b235fe4a7",
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "name": "Moloni GraphQL",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "SLmoloniGraphql1"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "once",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "46812f5f-2949-55ce-84f1-d1141b189108",
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "name": "Formatar resposta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "parameters": {
+        "jsCode": "const r = $input.first().json;\nif (!r.ok) {\n  return [{ json: { estado: r.estadoHTTP, corpo: { erro: \"Não foi possível consultar os produtos.\", codigo: `MOLONI_${r.tipo}` } } }];\n}\n\nconst operacao = r.data?.products;\nif (operacao?.errors?.length) {\n  return [{ json: { estado: 502, corpo: { erro: \"O Moloni ON devolveu erros na consulta de produtos.\" } } }];\n}\n\nconst produtos = operacao?.data;\nif (!Array.isArray(produtos)) {\n  return [{ json: { estado: 502, corpo: { erro: \"Resposta inesperada do Moloni ON.\" } } }];\n}\nreturn [{ json: { estado: 200, corpo: { total: produtos.length, produtos } } }];\n"
+      },
+      "id": "f821c7df-57cc-5dab-90d1-574a9316666a",
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "name": "Responder",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json.corpo) }}",
+        "options": {
+          "responseCode": "={{ $json.estado }}"
+        }
+      },
+      "id": "7fd04f52-0e7f-57b0-884f-ce8b7d1dbf39",
+      "position": [
+        960,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Preparar consulta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar consulta": {
+      "main": [
+        [
+          {
+            "node": "Moloni GraphQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Moloni GraphQL": {
+      "main": [
+        [
+          {
+            "node": "Formatar resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatar resposta": {
+      "main": [
+        [
+          {
+            "node": "Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Lisbon"
+  },
+  "pinData": {},
+  "versionId": "53cfa8a4-ec25-57da-ae13-f34431e55c88"
+}

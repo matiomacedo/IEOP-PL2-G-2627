@@ -1,0 +1,99 @@
+{
+  "id": "SLmoloniGraphql1",
+  "name": "Moloni GraphQL",
+  "nodes": [
+    {
+      "name": "Entrada",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "51d2f82b-786d-5e89-a3cf-e70b39f76ff5",
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Pedido ao Moloni",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "SLchaveMoloni001",
+          "name": "Moloni ON Authorization"
+        }
+      },
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MOLONI_API_URL }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ query: $json.query, variables: { ...$json.variables, companyId: Number($env.MOLONI_COMPANY_ID) } }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text",
+              "outputPropertyName": "body"
+            }
+          }
+        }
+      },
+      "id": "bd87dd49-6016-50e3-8202-932edca3e18e",
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "name": "Validar resposta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "parameters": {
+        "jsCode": "// Porta de services-layer/src/services/moloni.service.js (versão Express).\nfunction falha(tipo) {\n  return [{ json: { ok: false, tipo, estadoHTTP: 502 } }];\n}\n\nfunction classificar(erros) {\n  const mensagens = erros\n    .map((erro) => String(erro.msg || erro.message || \"\"))\n    .join(\" \")\n    .toLowerCase();\n\n  if (/must be logged in|unauthorized|unauthenticated|invalid.*token|invalid.*api.key|access denied/i.test(mensagens)) {\n    return falha(\"AUTENTICACAO\");\n  }\n  if (/validation|invalid.*field|required|must be|graphql_validation_failed/i.test(mensagens)) {\n    return falha(\"VALIDACAO\");\n  }\n  return falha(\"OPERACAO\");\n}\n\nconst resposta = $input.first().json;\n\n// Sem ligação: o pedido HTTP falhou antes de haver resposta.\nif (resposta.statusCode === undefined) return falha(\"COMUNICACAO\");\nif (resposta.statusCode === 401 || resposta.statusCode === 403) return falha(\"AUTENTICACAO\");\nif (resposta.statusCode < 200 || resposta.statusCode >= 300) return falha(\"HTTP\");\n\nlet resultado;\ntry {\n  resultado = typeof resposta.body === \"string\" ? JSON.parse(resposta.body) : resposta.body;\n} catch {\n  return falha(\"RESPOSTA_INVALIDA\");\n}\n\nif (Array.isArray(resultado?.errors) && resultado.errors.length > 0) return classificar(resultado.errors);\nif (!resultado?.data || typeof resultado.data !== \"object\") return falha(\"RESPOSTA_INVALIDA\");\n\nfor (const operacao of Object.values(resultado.data)) {\n  if (Array.isArray(operacao?.errors) && operacao.errors.length > 0) return classificar(operacao.errors);\n}\n\nreturn [{ json: { ok: true, data: resultado.data } }];\n"
+      },
+      "id": "4ff76099-f2ca-5fb3-9ec1-5881b547e5ea",
+      "position": [
+        480,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Entrada": {
+      "main": [
+        [
+          {
+            "node": "Pedido ao Moloni",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pedido ao Moloni": {
+      "main": [
+        [
+          {
+            "node": "Validar resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Lisbon"
+  },
+  "pinData": {},
+  "versionId": "2e9dd4b8-ed4c-55ba-ae65-12645f1a6e22"
+}

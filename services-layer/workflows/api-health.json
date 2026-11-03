@@ -1,0 +1,60 @@
+{
+  "id": "SLapiHealth00001",
+  "name": "API - GET /api/health",
+  "nodes": [
+    {
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "webhookId": "0ba8e744-67e0-571b-a912-284df457b028",
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "health",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "76fd2a5c-a809-5f74-9d50-f639d6590755",
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Responder",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: \"ok\", service: \"gestao-assistencia-integracao\" }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "6762445b-930a-5373-8d54-52832b70cb80",
+      "position": [
+        240,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Lisbon"
+  },
+  "pinData": {},
+  "versionId": "42310b8d-76c8-5863-a2d3-d24356c52c38"
+}

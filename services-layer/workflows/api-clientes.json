@@ -1,0 +1,208 @@
+{
+  "id": "SLapiClientes001",
+  "name": "API - GET /api/clientes",
+  "nodes": [
+    {
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "webhookId": "21bdf1d4-f8c4-5bdf-b4fb-372e34ab6583",
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "clientes",
+        "responseMode": "responseNode",
+        "options": {},
+        "authentication": "headerAuth"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "SLchaveInterna01",
+          "name": "Services Layer X-API-Key"
+        }
+      },
+      "id": "30be00c8-aa51-5360-8ab5-a8b75e259ea0",
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Validar pedido",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "parameters": {
+        "jsCode": "const nif = $input.first().json.query.nif;\nif (typeof nif !== \"string\" || !nif.trim()) {\n  return [{ json: { estado: 400, corpo: { erro: \"O parâmetro nif é obrigatório.\" } } }];\n}\nreturn [{ json: { query: `\n  query ($companyId: Int!, $nif: String!) {\n    customers(\n      companyId: $companyId\n      options: { search: { field: vat, value: $nif }, pagination: { page: 1, qty: 20 } }\n    ) {\n      errors { field msg }\n      data { customerId name vat number }\n    }\n  }`, variables: { nif: nif.trim() } } }];"
+      },
+      "id": "34140813-0191-52d8-bebc-e8f53ae419ef",
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "name": "Pedido válido?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a1b2c3d4-0000-4000-8000-000000000001",
+              "leftValue": "={{ $json.estado }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3b76dc9f-7259-5994-817b-801833d96088",
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "name": "Moloni GraphQL",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "SLmoloniGraphql1"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "once",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "5dab0c23-e576-56bc-9d34-33d6e1bd50f0",
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "name": "Formatar resposta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "parameters": {
+        "jsCode": "const r = $input.first().json;\nif (!r.ok) {\n  return [{ json: { estado: r.estadoHTTP, corpo: { erro: \"Não foi possível consultar os clientes.\", codigo: `MOLONI_${r.tipo}` } } }];\n}\n\nconst operacao = r.data?.customers;\nif (operacao?.errors?.length) {\n  return [{ json: { estado: 502, corpo: { erro: \"O Moloni ON devolveu erros na consulta de clientes.\" } } }];\n}\n\nconst clientes = operacao?.data;\nif (!Array.isArray(clientes)) {\n  return [{ json: { estado: 502, corpo: { erro: \"Resposta inesperada do Moloni ON.\" } } }];\n}\nreturn [{ json: { estado: 200, corpo: { total: clientes.length, clientes } } }];\n"
+      },
+      "id": "ec002efb-173b-5b8a-93d5-5ea191bc6b00",
+      "position": [
+        960,
+        0
+      ]
+    },
+    {
+      "name": "Responder",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json.corpo) }}",
+        "options": {
+          "responseCode": "={{ $json.estado }}"
+        }
+      },
+      "id": "a48ccecc-7a23-553e-abb6-2fc4b523a8db",
+      "position": [
+        1200,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validar pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar pedido": {
+      "main": [
+        [
+          {
+            "node": "Pedido válido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pedido válido?": {
+      "main": [
+        [
+          {
+            "node": "Moloni GraphQL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Moloni GraphQL": {
+      "main": [
+        [
+          {
+            "node": "Formatar resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatar resposta": {
+      "main": [
+        [
+          {
+            "node": "Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Lisbon"
+  },
+  "pinData": {},
+  "versionId": "c01b2370-3bf7-5956-9511-fed2468edab5"
+}
